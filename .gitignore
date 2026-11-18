@@ -1,0 +1,10 @@
+target/
+.tools/
+client/node_modules/
+client/dist/
+data/accounts.json
+data/accounts-*.tmp
+*.log
+.idea/
+.vscode/
+Thumbs.db

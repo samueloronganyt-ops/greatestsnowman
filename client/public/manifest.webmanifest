@@ -1,0 +1,11 @@
+{
+  "name": "The Greatest Snowman: Battle in the Snow",
+  "short_name": "Greatest Snowman",
+  "description": "A multiplayer snowman arena game.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#102238",
+  "theme_color": "#102238"
+}

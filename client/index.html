@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#102238" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <title>The Greatest Snowman: Battle in the Snow</title>
+</head>
+<body>
+  <div id="game"></div>
+  <main id="title-screen" class="title-screen" aria-label="The Greatest Snowman title screen">
+    <img class="title-backdrop" src="/assets/title/bg.jpg" alt="" aria-hidden="true" />
+    <div class="title-vignette" aria-hidden="true"></div>
+    <div class="title-snow" aria-hidden="true"></div>
+    <canvas id="title-snowman-canvas" class="title-snowman-canvas" aria-label="A waving 3D snowman"></canvas>
+    <img id="title-logo" class="title-logo" src="/assets/title/logo.png" alt="The Greatest Snowman" />
+    <div class="title-corner-actions">
+      <button id="title-sound-toggle" class="title-icon-button" type="button" aria-label="Turn sound off" aria-pressed="false"><span aria-hidden="true">♫</span></button>
+      <button id="title-fullscreen" class="title-icon-button" type="button" aria-label="Toggle fullscreen"><span aria-hidden="true">⛶</span></button>
+    </div>
+    <nav class="title-actions" aria-label="Main menu">
+      <button id="title-play" class="title-art-button title-play" type="button" aria-label="Play">
+        <span class="visually-hidden">Play</span>
+      </button>
+      <button id="title-quit" class="title-art-button title-quit" type="button" aria-label="Quit game">
+        <span class="visually-hidden">Quit game</span>
+      </button>
+    </nav>
+    <div id="title-loader" class="title-loader" role="status" aria-live="polite">
+      <span>Preparing the snowy village…</span><i><b></b></i>
+    </div>
+  </main>
+  <div id="rendering-error" class="rendering-error" hidden role="alert" aria-live="assertive"></div>
+  <div id="touch-controls" class="mobile-controls" hidden aria-label="Touch game controls">
+    <div id="mobile-joystick" class="mobile-joystick" role="application" aria-label="Movement joystick">
+      <span class="joystick-ring"></span><span id="joystick-stick" class="joystick-stick"></span>
+      <span class="joystick-caption">MOVE</span>
+    </div>
+    <button id="mobile-throw" class="mobile-throw" type="button" aria-label="Hold to charge, release to throw">
+      <span>SNOWBALL</span><small>HOLD TO CHARGE</small>
+    </button>
+    <button id="mobile-aim" class="mobile-aim" type="button" aria-pressed="false">AIM</button>
+    <button id="aim-shoulder-swap" class="aim-shoulder-swap" type="button" aria-label="Swap aim shoulder" hidden>SWAP</button>
+    <div id="mobile-stance-controls" class="mobile-stance-controls" aria-label="Movement stance controls">
+      <button id="mobile-crouch" type="button" aria-pressed="false">CROUCH</button>
+      <button id="mobile-dash" class="mobile-dash" type="button" aria-label="Dash" style="--dash-cooldown:0">
+        <span>DASH</span><small id="mobile-dash-time"></small>
+      </button>
+    </div>
+    <button id="mobile-leave" class="mobile-leave" type="button" aria-label="Pause">Ⅱ</button>
+    <button id="mobile-fullscreen" class="match-fullscreen mobile-fullscreen" type="button" aria-label="Toggle fullscreen" hidden>⛶</button>
+  </div>
+  <div class="hud">
+    <div class="brand"><span class="flake">✳</span><div><strong>THE GREATEST SNOWMAN</strong><small>BATTLE IN THE SNOW</small></div></div>
+    <div id="connection" class="connection">LOG IN TO PLAY</div>
+    <button id="match-fullscreen" class="match-fullscreen" type="button" aria-label="Toggle fullscreen" hidden>⛶</button>
+    <button id="desktop-pause" class="desktop-pause" type="button" hidden aria-label="Pause">Ⅱ</button>
+    <div id="zone-toast" class="zone-toast" aria-live="polite"></div>
+    <div id="minimap-wrap" class="minimap-wrap" hidden>
+      <div class="minimap-title">ARENA MAP <span>N</span></div>
+      <canvas id="minimap" width="220" height="220" aria-label="Arena minimap showing zones, walls, pickups, and players"></canvas>
+    </div>
+    <section id="match-hud" class="match-hud" hidden aria-live="polite">
+      <div class="match-health"><span>HEALTH</span><div><i id="match-health-fill"></i></div><b id="match-health-value">100</b></div>
+      <div id="stance-indicator" class="stance-indicator" aria-live="polite"><span id="stance-icon">●</span><b id="stance-label">STAND</b></div>
+      <div id="dash-indicator" class="dash-indicator" aria-label="Dash cooldown"><i id="dash-cooldown-fill"></i></div>
+      <div id="match-charge" class="match-charge" hidden><span id="charge-label">CHARGING</span><div><i id="charge-fill"></i></div></div>
+      <div id="powerup-status" class="powerup-status" aria-label="Active gifts"></div>
+      <div id="match-scores" class="match-scores"></div>
+    </section>
+    <div id="room-corner" class="room-corner collapsed">
+      <button id="room-corner-toggle" type="button" aria-expanded="false" aria-label="Room and player list"><span id="room-corner-label">ROOM</span><span id="room-code-mini">-----</span></button>
+      <div id="roster" class="roster"></div>
+    </div>
+    <div id="crosshair" class="crosshair" aria-hidden="true"><span></span><i id="charge-ring"></i></div>
+    <div id="aim-indicator" class="aim-indicator" hidden>AIM MODE ON</div>
+    <div id="damage-flash" class="damage-flash" aria-hidden="true"></div>
+    <div id="hit-marker" class="hit-marker" aria-hidden="true">×</div>
+  </div>
+  <section id="pause-menu" class="pause-menu" hidden role="dialog" aria-modal="true" aria-labelledby="pause-title">
+    <div class="pause-card"><h2 id="pause-title">PAUSED</h2>
+      <button id="resume-game" type="button">RESUME</button>
+      <button id="pause-fullscreen" type="button">TOGGLE FULLSCREEN</button>
+      <label><input id="invert-x" type="checkbox"> Invert X look</label>
+      <label><input id="invert-y" type="checkbox"> Invert Y look</label>
+      <label><input id="limit-vertical" type="checkbox"> Limit vertical angle</label>
+      <label>Crouch behavior<select id="crouch-mode"><option value="hold">Hold on C/Ctrl</option><option value="toggle">Toggle on C</option></select></label>
+      <button id="customize-controls-open" type="button" hidden>Customize Controls</button>
+      <details class="how-to-play"><summary>HOW TO PLAY</summary><div class="how-to-play-content"><p><b>PC</b> — Move: WASD / arrow keys. Look: drag the arena. Aim: hold right mouse or press Q. Throw: hold/release Space or left mouse. Crouch: C or Ctrl (hold by default; change to toggle in Pause settings). Dash: Shift. Pause: Esc.</p><p><b>Mobile</b> — Move: left joystick. Look: drag the open arena. Aim: AIM. Throw: hold/release SNOWBALL. Crouch and Dash: use their buttons. Pause: pause button. Use the minimap and collect gifts for temporary power-ups.</p></div></details>
+      <div id="controls-calibration" class="controls-calibration" aria-live="polite">CONTROLS: —</div>
+      <label>Graphics <select id="graphics-quality"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
+      <button id="mute-audio" type="button" aria-pressed="false">SOUND: ON</button>
+      <button id="pause-leave" type="button">LEAVE ROOM</button>
+      <button id="pause-logout" type="button">LOG OUT</button>
+      <button id="pause-quit" type="button">QUIT GAME</button>
+    </div>
+  </section>
+  <section id="control-editor" class="control-editor" hidden role="dialog" aria-modal="true" aria-labelledby="control-editor-title">
+    <div class="control-editor-card">
+      <h2 id="control-editor-title">CUSTOMIZE CONTROLS</h2>
+      <p>Drag the controls on the game screen. Select one to resize or adjust opacity.</p>
+      <label>Selected control<select id="control-target"><option value="joystick">Joystick</option><option value="throw">Snowball</option><option value="aim">Aim</option><option value="crouch">Crouch</option><option value="dash">Dash</option></select></label>
+      <label>Size <input id="control-size" type="range" min="70" max="150" value="100"><output id="control-size-value">100%</output></label>
+      <label>Opacity <input id="control-opacity" type="range" min="30" max="100" value="72"><output id="control-opacity-value">72%</output></label>
+      <label><input id="aim-hold-mode" type="checkbox"> Hold Aim (otherwise tap to toggle)</label>
+      <label><input id="crouch-hold-mode" type="checkbox"> Hold Crouch (otherwise tap to toggle)</label>
+      <label><input id="hide-crouch" type="checkbox"> Hide Crouch</label>
+      <label><input id="hide-dash" type="checkbox"> Hide Dash</label>
+      <p id="control-overlap-warning" aria-live="polite">Drag controls to arrange them. Save checks for overlaps.</p>
+      <div class="control-editor-actions"><button id="controls-save" type="button">SAVE</button><button id="controls-reset" type="button">RESET TO DEFAULT</button><button id="controls-cancel" type="button">CANCEL</button></div>
+    </div>
+  </section>
+  <div id="fullscreen-hint" class="fullscreen-hint" hidden><span>For fullscreen, tap Share → Add to Home Screen.</span><button id="dismiss-fullscreen-hint" type="button">×</button></div>
+  <div id="rotate-hint" class="rotate-hint" hidden><span>Rotate to landscape for a wider view.</span><button id="dismiss-rotate-hint" type="button">OK</button></div>
+  <aside class="account-panel" hidden>
+    <button id="menu-fullscreen" class="menu-fullscreen" type="button" aria-label="Toggle fullscreen">⛶ FULLSCREEN</button>
+    <div class="account-title">PLAYER ACCOUNT</div>
+    <p id="account-message" class="account-message">Register or log in to save your profile.</p>
+    <div id="auth-view">
+      <form id="account-form">
+        <label>USERNAME<input id="account-username" autocomplete="username" maxlength="18" required /></label>
+        <label>PASSWORD<input id="account-password" type="password" autocomplete="current-password" required /></label>
+        <div class="account-actions"><button id="account-submit" type="submit">LOG IN</button><button id="account-mode" type="button">CREATE ACCOUNT</button></div>
+      </form>
+      <details class="how-to-play"><summary>HOW TO PLAY</summary><div class="how-to-play-content"><p><b>PC</b> — Move: WASD / arrow keys. Look: drag the arena. Aim: hold right mouse or press Q. Throw: hold/release Space or left mouse. Crouch: C or Ctrl (hold by default; change to toggle in Pause settings). Dash: Shift. Pause: Esc.</p><p><b>Mobile</b> — Move: left joystick. Look: drag the open arena. Aim: AIM. Throw: hold/release SNOWBALL. Crouch and Dash: use their buttons. Pause: pause button. Use the minimap and collect gifts for temporary power-ups.</p></div></details>
+    </div>
+    <div id="profile-view" hidden>
+      <div id="room-menu-view">
+        <div id="profile-stats" class="profile-stats"></div>
+        <form id="profile-form" class="profile-form">
+          <label>USERNAME<input id="profile-username" maxlength="18" /></label>
+          <label>CURRENT PASSWORD<input id="current-password" type="password" autocomplete="current-password" /></label>
+          <label>NEW PASSWORD<input id="new-password" type="password" autocomplete="new-password" /></label>
+          <button type="submit">SAVE ACCOUNT</button>
+        </form>
+        <div class="room-settings">
+          <div class="section-title">HOST A ROOM</div>
+          <label>MAX PLAYERS<select id="max-players"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option selected>8</option></select></label>
+          <label>SCORE GOAL<input id="score-goal" type="number" min="5" max="50" value="15" /></label>
+          <label>ARENA<select id="map-size"><option value="CHRISTMAS" selected>Christmas Arena</option></select></label>
+          <button id="host-room" type="button">HOST ROOM</button>
+        </div>
+        <div class="join-settings">
+          <div class="section-title">JOIN A ROOM</div>
+          <label>ROOM CODE<input id="room-code-input" maxlength="5" autocomplete="off" /></label>
+          <button id="join-room" type="button">JOIN ROOM</button>
+        </div>
+        <div class="account-actions"><button id="logout" type="button">LOG OUT</button><button id="delete-account" class="danger" type="button">DELETE ACCOUNT</button></div>
+      </div>
+      <div id="lobby-view" hidden>
+        <div id="lobby-content">
+        <div class="room-heading"><span>ROOM</span><strong id="room-code-label">-----</strong><button id="copy-code" type="button">COPY</button></div>
+        <div id="room-settings-label" class="room-meta"></div>
+        <div id="player-list" class="player-list"></div>
+        <div class="lobby-actions"><button id="ready-toggle" type="button">READY</button><button id="start-match" type="button" disabled>START MATCH</button></div>
+        <button id="leave-room" class="secondary-button" type="button">LEAVE ROOM</button>
+        <div class="section-title preview-title">YOUR SNOWMAN</div>
+        <div class="preview-frame"><canvas id="preview-canvas"></canvas></div>
+        <form id="look-form" class="look-form">
+          <label>HAT<select id="look-hat"><option value="top-hat">Top hat</option><option value="beanie">Beanie</option><option value="crown">Crown</option><option value="none">None</option></select></label>
+          <label>SCARF<select id="look-scarf"><option value="classic">Classic</option><option value="striped">Striped</option><option value="bowtie">Bow tie</option><option value="none">None</option></select></label>
+          <label>NOSE<select id="look-nose"><option value="carrot">Carrot</option><option value="button">Button</option><option value="golden">Golden carrot</option></select></label>
+          <label>ARMS<select id="look-arms"><option value="twigs">Twigs</option><option value="candy-canes">Candy canes</option><option value="none">None</option></select></label>
+          <label>BODY<select id="look-body"><option value="classic">Classic</option><option value="wide">Wide</option><option value="tall">Tall</option></select></label>
+          <label>COLOR<input id="look-color" type="color" value="#69a9e8" /></label>
+        </form>
+        <div id="look-stats" class="look-stats"></div>
+        </div>
+        <section id="results-view" class="results-view" hidden aria-live="assertive">
+          <div class="results-kicker">MATCH COMPLETE</div>
+          <h2 id="results-winner">Snowy victory!</h2>
+          <p id="results-summary"></p>
+          <div id="results-scoreboard" class="results-scoreboard"></div>
+          <div class="results-actions"><button id="restart-match" type="button">PLAY AGAIN</button><button id="back-to-lobby" class="secondary-button" type="button">BACK TO LOBBY</button></div>
+          <p id="results-host-note" class="results-host-note"></p>
+        </section>
+      </div>
+    </div>
+    <div id="duplicate-session-notice" class="duplicate-session-notice" hidden role="status">
+      <span>This account is active in another game window or device.</span>
+      <button id="takeover-session" type="button">LOG IN HERE ANYWAY (SIGN OUT OTHER SESSION)</button>
+      <button id="dismiss-duplicate" type="button" aria-label="Dismiss">×</button>
+    </div>
+  </aside>
+  <dialog id="quit-confirmation" class="quit-confirmation" aria-labelledby="quit-title">
+    <div class="quit-card">
+      <div class="quit-snowflake" aria-hidden="true">✳</div>
+      <h2 id="quit-title">LEAVE THE SNOWY VILLAGE?</h2>
+      <p>Your room will close on this device and you will be signed out.</p>
+      <div class="quit-actions"><button id="quit-confirm" type="button">YES, QUIT</button><button id="quit-cancel" class="secondary-button" type="button">STAY AND PLAY</button></div>
+    </div>
+  </dialog>
+  <section id="thanks-screen" class="thanks-screen" hidden aria-labelledby="thanks-title">
+    <div class="thanks-card">
+      <div class="quit-snowflake" aria-hidden="true">✳</div>
+      <h1 id="thanks-title">THANKS FOR PLAYING!</h1>
+      <p>Keep warm, and come back for another snowball fight.</p>
+      <button id="play-again" type="button">PLAY AGAIN</button>
+    </div>
+  </section>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
